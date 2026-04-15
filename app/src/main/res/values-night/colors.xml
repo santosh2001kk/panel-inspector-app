@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Overrides -->
+    <color name="screen_bg">#121212</color>
+    <color name="card_bg">#1E1E1E</color>
+    <color name="text_primary">#E1E1E1</color>
+    <color name="text_secondary">#AAAAAA</color>
+    <color name="input_bg">#2C2C2C</color>
+    <color name="input_stroke">#3D3D3D</color>
+    <color name="white">#E1E1E1</color>
+    <color name="gray_900">#F3F4F6</color>
+    <color name="gray_100">#2C2C2C</color>
+</resources>

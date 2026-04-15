@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="Panel Inspector"
+        android:theme="@style/Theme.TesterApiGoogle"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity android:name=".TaskSelectionActivity"  android:screenOrientation="portrait" />
+        <activity android:name=".PanelRegisterActivity" android:screenOrientation="portrait" />
+        <activity android:name=".ScanActivity"      android:screenOrientation="portrait" />
+        <activity android:name=".WorkZoneActivity"  android:screenOrientation="portrait" />
+        <activity android:name=".ResultActivity"    android:screenOrientation="portrait" />
+        <activity android:name=".ReportsActivity"        android:screenOrientation="portrait" />
+        <activity android:name=".ProjectDetailsActivity" android:screenOrientation="portrait" />
+        <activity android:name=".LocateVbbActivity"      android:screenOrientation="portrait" />
+        <activity android:name=".VbbResultActivity"      android:screenOrientation="portrait" />
+        <activity android:name=".PhotoGuideActivity"     android:screenOrientation="portrait" />
+        <activity android:name=".DocumentsActivity"      android:screenOrientation="portrait" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+    </application>
+
+</manifest>

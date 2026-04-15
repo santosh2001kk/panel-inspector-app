@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Base dark blue gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#001E3C"
+                android:centerColor="#003865"
+                android:endColor="#005A8E"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Large green circle top-right accent -->
+    <item
+        android:top="-300dp"
+        android:right="-200dp">
+        <shape android:shape="oval">
+            <solid android:color="#1A3DCD58" />
+        </shape>
+    </item>
+
+    <!-- Medium green circle bottom-left accent -->
+    <item
+        android:bottom="-250dp"
+        android:left="-180dp">
+        <shape android:shape="oval">
+            <solid android:color="#153DCD58" />
+        </shape>
+    </item>
+
+</layer-list>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.TesterApiGoogle" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/schneider_green</item>
+        <item name="colorPrimaryVariant">@color/schneider_green_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Status bar: dark navy so notification icons are always white and clearly visible -->
+        <item name="android:statusBarColor">#003865</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

@@ -1,0 +1,27 @@
+# Android / Gradle build outputs
+.gradle/
+build/
+app/build/
+local.properties
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/.name
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+captures/
+*.apk
+*.ap_
+*.dex
+gen/
+out/
+release/
+
+# macOS
+.DS_Store
+
+# Keystore (never commit)
+*.jks
+*.keystore
