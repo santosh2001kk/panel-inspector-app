@@ -95,10 +95,11 @@ class LoginActivity : AppCompatActivity() {
                     btnLogin.isEnabled = true
                     btnLogin.text = "Sign In"
                     if (success) {
-                        if (remember) {
-                            getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
-                                .edit().putBoolean("is_logged_in", true).apply()
-                        }
+                        getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+                            .edit()
+                            .putBoolean("is_logged_in", remember)
+                            .putString("username", username)
+                            .apply()
                         goToMain()
                     } else {
                         tvError.text = message

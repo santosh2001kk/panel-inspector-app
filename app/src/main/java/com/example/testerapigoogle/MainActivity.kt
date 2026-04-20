@@ -52,9 +52,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialCardView>(R.id.cardReports)
             .setOnClickListener { startActivity(Intent(this, ReportsActivity::class.java)) }
 
-        findViewById<MaterialCardView>(R.id.cardPanelRegister)
-            .setOnClickListener { startActivity(Intent(this, PanelRegisterActivity::class.java)) }
-
         findViewById<MaterialCardView>(R.id.cardProjectDetails)
             .setOnClickListener { startActivity(Intent(this, ProjectDetailsActivity::class.java)) }
 
@@ -90,7 +87,7 @@ class MainActivity : AppCompatActivity() {
         
         lifecycleScope.launch(Dispatchers.IO) {
             while (true) {
-                val isOnline = isServerReachable("10.222.37.176", 8000)
+                val isOnline = isServerReachable("10.114.64.176", 8000)
                 withContext(Dispatchers.Main) {
                     if (isOnline) {
                         tvStatus.text = "Model ready"

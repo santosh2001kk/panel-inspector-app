@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- AR camera feed -->
+    <android.opengl.GLSurfaceView
+        android:id="@+id/arSurfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Top instruction bar -->
+    <TextView
+        android:id="@+id/tvArInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#CC000000"
+        android:padding="16dp"
+        android:text="Point the camera slowly at the panel until it is recognised."
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:elevation="4dp" />
+
+    <!-- Bottom status bar -->
+    <TextView
+        android:id="@+id/tvArStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="72dp"
+        android:layout_marginHorizontal="24dp"
+        android:background="#CC1565C0"
+        android:padding="18dp"
+        android:text="🔍 Searching for panel..."
+        android:textColor="#FFFFFF"
+        android:textSize="17sp"
+        android:gravity="center"
+        android:fontFamily="sans-serif-medium"
+        android:elevation="4dp" />
+
+    <!-- Close button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnArClose"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="12dp"
+        android:text="Close"
+        android:textColor="#FFFFFF" />
+
+</FrameLayout>

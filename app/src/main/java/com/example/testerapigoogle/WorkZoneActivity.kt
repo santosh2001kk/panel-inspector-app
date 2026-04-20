@@ -158,14 +158,19 @@ class WorkZoneActivity : AppCompatActivity() {
                 return@launch
             }
 
-            val prefs     = getSharedPreferences("google_api_prefs", MODE_PRIVATE)
-            val sldPath   = prefs.getString("sld_image_path", null)
-            val layoutPath = prefs.getString("layout_image_path", null)
+            val prefs        = getSharedPreferences("google_api_prefs", MODE_PRIVATE)
+            val loginPrefs   = getSharedPreferences("login_prefs", MODE_PRIVATE)
+            val sldPath      = prefs.getString("sld_image_path", null)
+            val layoutPath   = prefs.getString("layout_image_path", null)
             val sldBitmap    = sldPath?.let    { BitmapFactory.decodeFile(it) }
             val layoutBitmap = layoutPath?.let { BitmapFactory.decodeFile(it) }
+            val username     = loginPrefs.getString("username", "") ?: ""
+            val projectName  = prefs.getString("project_name", "") ?: ""
+            val site         = prefs.getString("site_location", "") ?: ""
+            val inspector    = prefs.getString("inspector_name", "") ?: ""
 
             try {
-                val result = detector.detect(bitmap, workZone, safetyBuffer, identifyOnly, busbarOnly, sldBitmap, layoutBitmap, task)
+                val result = detector.detect(bitmap, workZone, safetyBuffer, identifyOnly, busbarOnly, sldBitmap, layoutBitmap, task, username, projectName, site, inspector)
 
                 withContext(Dispatchers.Main) {
                     stopMessages()

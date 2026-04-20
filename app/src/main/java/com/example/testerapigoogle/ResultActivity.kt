@@ -5,29 +5,50 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import androidx.exifinterface.media.ExifInterface
 import com.bumptech.glide.Glide
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import java.io.ByteArrayOutputStream
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ResultActivity : AppCompatActivity() {
 
     // Captured after overlay draws — used for the report image
     private var markedBitmap: Bitmap? = null
+
+    // Tap-to-read: shared detector instance used for readLabel() calls
+    private val detector = GoogleStudioDetector()
+
+    // The current list of detections — kept mutable so tap-to-read can update
+    // a Detection's circuitLabel/rating and refresh the overlay in place.
+    private val currentDetections: MutableList<Detection> = mutableListOf()
+
+    // Original image dimensions — needed to re-call setDetections() after an update
+    private var imageWidth  = 0
+    private var imageHeight = 0
+
+    // Absolute path of the captured panel photo — used to crop a breaker region
+    private var currentImagePath: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +69,7 @@ class ResultActivity : AppCompatActivity() {
         sheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
         val imagePath      = intent.getStringExtra("image_path")
+        currentImagePath   = imagePath   // save for tap-to-read crop
         val detectionsJson = intent.getStringExtra("detections_json")
         val notes          = intent.getStringExtra("notes") ?: ""
         val warnings       = intent.getStringArrayListExtra("safety_warnings") ?: arrayListOf()
@@ -132,6 +154,24 @@ class ResultActivity : AppCompatActivity() {
                 }
                 overlay.setDetections(detections, imgW, imgH)
 
+                // Store detections + image size at activity level so tap-to-read
+                // can crop the correct region and update the overlay after reading.
+                currentDetections.clear()
+                currentDetections.addAll(detections)
+                imageWidth  = imgW
+                imageHeight = imgH
+
+                // Enable tap-to-read: when the user taps a breaker box on the result
+                // screen, crop that region from the original photo and send to Gemini
+                // for close-up label reading.
+                overlay.setOnTouchListener { _, event ->
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        val hit = overlay.getDetectionAt(event.x, event.y)
+                        if (hit != null) onBreakerTapped(hit)
+                    }
+                    false   // don't consume — still allows scroll on parent
+                }
+
                 val workZone  = workZoneJson?.let { Gson().fromJson(it, ZoneCoords::class.java) }
                 val safetyBuf = safetyBufJson?.let { Gson().fromJson(it, ZoneCoords::class.java) }
                 overlay.setZones(workZone, safetyBuf)
@@ -194,6 +234,7 @@ class ResultActivity : AppCompatActivity() {
                     .show()
             }
         }
+
 
         findViewById<Button>(R.id.btnRetake).setOnClickListener { finish() }
 
@@ -259,104 +300,6 @@ class ResultActivity : AppCompatActivity() {
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 })
 
-                // ── Ask to link to panel register ──────────────────────
-                val fmt       = java.text.SimpleDateFormat("dd MMM yyyy HH:mm", java.util.Locale.getDefault())
-                val allPanels = PanelAssetStore.getAll(this)
-
-                fun buildIntervention(panelId: String) = PanelIntervention(
-                    dateMs     = System.currentTimeMillis(),
-                    task       = task,
-                    inspector  = inspector,
-                    panelType  = panelType,
-                    busbarSide = busbarSide,
-                    notes      = notes,
-                    warnings   = warnings.toList(),
-                    imagePath  = imagePath ?: ""
-                )
-
-                fun registerNew(panelId: String) {
-                    PanelAssetStore.register(this, PanelAsset(
-                        panelId        = panelId,
-                        site           = site,
-                        firstSeenMs    = System.currentTimeMillis(),
-                        firstTask      = task,
-                        firstInspector = inspector,
-                        panelType      = panelType,
-                        busbarSide     = busbarSide,
-                        interventions  = listOf(buildIntervention(panelId))
-                    ))
-                    Toast.makeText(this, "Panel $panelId registered!", Toast.LENGTH_SHORT).show()
-                }
-
-                fun showNewPanelDialog() {
-                    val input = android.widget.EditText(this).apply {
-                        hint = "e.g. MDB-01"
-                        setPadding(40, 20, 40, 20)
-                    }
-                    androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("Register New Panel")
-                        .setMessage("Give this panel a name or ID:")
-                        .setView(input)
-                        .setPositiveButton("Register") { _, _ ->
-                            val id = input.text.toString().trim()
-                            if (id.isBlank()) Toast.makeText(this, "Panel ID cannot be empty", Toast.LENGTH_SHORT).show()
-                            else registerNew(id)
-                        }
-                        .setNegativeButton("Skip", null)
-                        .show()
-                }
-
-                fun showHistoryAndLink(panel: PanelAsset) {
-                    val sb = StringBuilder()
-                    sb.appendLine("Panel ID : ${panel.panelId}")
-                    sb.appendLine("Type     : ${panel.panelType}")
-                    if (panel.busbarSide != "unknown")
-                        sb.appendLine("Bus bar  : ${panel.busbarSide} side — ⚠️ ALWAYS LIVE")
-                    sb.appendLine("Site     : ${panel.site.ifBlank { "—" }}")
-                    sb.appendLine()
-                    if (panel.interventions.isEmpty()) {
-                        sb.appendLine("No previous visits recorded.")
-                    } else {
-                        sb.appendLine("── Previous Visits ──")
-                        panel.interventions.take(5).forEachIndexed { i, iv ->
-                            sb.appendLine("${i + 1}. ${fmt.format(java.util.Date(iv.dateMs))}")
-                            sb.appendLine("   Task      : ${iv.task.replaceFirstChar { it.uppercase() }}")
-                            sb.appendLine("   Inspector : ${iv.inspector.ifBlank { "—" }}")
-                            if (iv.warnings.isNotEmpty()) sb.appendLine("   ⚠️ ${iv.warnings.first()}")
-                            sb.appendLine()
-                        }
-                    }
-                    androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("Link to Panel ${panel.panelId}?")
-                        .setMessage(sb.toString())
-                        .setPositiveButton("Yes, Add This Scan") { _, _ ->
-                            PanelAssetStore.addIntervention(this, panel.panelId, buildIntervention(panel.panelId))
-                            Toast.makeText(this, "Scan linked to ${panel.panelId}", Toast.LENGTH_SHORT).show()
-                        }
-                        .setNegativeButton("Skip", null)
-                        .show()
-                }
-
-                // Show panel register prompt
-                if (allPanels.isEmpty()) {
-                    androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("Save to Panel Register?")
-                        .setMessage("Do you want to register this panel?\nYou can track its full history over time.")
-                        .setPositiveButton("Yes") { _, _ -> showNewPanelDialog() }
-                        .setNegativeButton("Skip", null)
-                        .show()
-                } else {
-                    val names = allPanels.map { "${it.panelId} — ${it.panelType}" }.toMutableList()
-                    names.add("+ New Panel")
-                    androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("Link to Panel Register?")
-                        .setItems(names.toTypedArray()) { _, which ->
-                            if (which == allPanels.size) showNewPanelDialog()
-                            else showHistoryAndLink(allPanels[which])
-                        }
-                        .setNegativeButton("Skip", null)
-                        .show()
-                }
 
             } catch (e: Exception) {
                 Toast.makeText(this, "Failed: ${e.message}", Toast.LENGTH_LONG).show()
@@ -378,9 +321,6 @@ class ResultActivity : AppCompatActivity() {
             }
         }
 
-        // Reg Panel button — hidden, kept for XML compatibility
-        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnRegisterPanel)
-            ?.visibility = View.GONE
     }
 
     private fun checkVbbOverlap(vbbBox: FloatArray, workZoneJson: String?, overlay: BoundingBoxOverlay, side: String) {
@@ -447,6 +387,90 @@ class ResultActivity : AppCompatActivity() {
                     .show()
             }
             // If no overlap — no warning needed, busbar zone is just shown on screen
+        }
+    }
+
+    /**
+     * onBreakerTapped()
+     *
+     * Called when the user taps a breaker bounding box on the result screen.
+     *
+     * Flow:
+     *   1. Show a dialog immediately with "Reading label..."
+     *   2. On a background thread: load the original image → crop the breaker
+     *      region (with 20% padding) → send to /api/read_label on the server.
+     *   3. Gemini reads any text on the breaker face or label strip close-up.
+     *   4. Update the dialog text with the result.
+     *   5. If new label/rating was found, update currentDetections and refresh
+     *      the overlay so the sub-label tag below the bounding box updates.
+     *
+     * This is the tap-to-read fallback (Idea 3): useful when the photo was taken
+     * from too far away for Gemini to read labels during the main scan.
+     */
+    private fun onBreakerTapped(detection: Detection) {
+        val imgPath = currentImagePath ?: return
+
+        // Show a dialog immediately so the user sees something happened
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(detection.label)
+            .setMessage("Reading label...")
+            .setPositiveButton("OK", null)
+            .show()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val full = loadWithExif(imgPath) ?: run {
+                withContext(Dispatchers.Main) {
+                    dialog.setMessage("Could not load image.")
+                }
+                return@launch
+            }
+
+            // Crop the breaker region with 20% padding on each side so
+            // the label strip beside the breaker is also included in the crop.
+            val padX = (detection.x2 - detection.x1) * 0.2f
+            val padY = (detection.y2 - detection.y1) * 0.2f
+            val cropX1 = (detection.x1 - padX).coerceAtLeast(0f).toInt()
+            val cropY1 = (detection.y1 - padY).coerceAtLeast(0f).toInt()
+            val cropX2 = (detection.x2 + padX).coerceAtMost(full.width.toFloat()).toInt()
+            val cropY2 = (detection.y2 + padY).coerceAtMost(full.height.toFloat()).toInt()
+            val cropW  = (cropX2 - cropX1).coerceAtLeast(1)
+            val cropH  = (cropY2 - cropY1).coerceAtLeast(1)
+
+            val cropped = Bitmap.createBitmap(full, cropX1, cropY1, cropW, cropH)
+            full.recycle()
+
+            val (label, rating) = detector.readLabel(cropped)
+            cropped.recycle()
+
+            withContext(Dispatchers.Main) {
+                // Build the result message
+                val msg = when {
+                    label.isNotBlank() && rating.isNotBlank() ->
+                        "Circuit:  $label\nRating:    $rating"
+                    label.isNotBlank()  -> "Circuit:  $label"
+                    rating.isNotBlank() -> "Rating:    $rating"
+                    else ->
+                        "No label text detected.\n\nFor best results, zoom in close to the breaker before taking the photo."
+                }
+                dialog.setMessage(msg)
+
+                // If new info was read, update the detection in the list and
+                // refresh the overlay so the sub-label tag updates on screen.
+                if (label.isNotBlank() || rating.isNotBlank()) {
+                    val idx = currentDetections.indexOfFirst { d ->
+                        d.x1 == detection.x1 && d.y1 == detection.y1
+                    }
+                    if (idx >= 0) {
+                        val old = currentDetections[idx]
+                        currentDetections[idx] = old.copy(
+                            circuitLabel = label.ifBlank { old.circuitLabel },
+                            rating       = rating.ifBlank { old.rating }
+                        )
+                        val overlay = findViewById<BoundingBoxOverlay>(R.id.overlay)
+                        overlay.setDetections(currentDetections, imageWidth, imageHeight)
+                    }
+                }
+            }
         }
     }
 

@@ -61,6 +61,9 @@ dependencies {
     implementation("androidx.viewpager2:viewpager2:1.1.0")
     implementation(libs.androidx.recyclerview)
 
+    // ARCore for panel verification
+    implementation("com.google.ar:core:1.44.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

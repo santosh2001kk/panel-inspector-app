@@ -4,6 +4,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- ARCore: optional — app works on non-AR devices, AR verify feature just won't show -->
+    <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -39,6 +42,10 @@
         <activity android:name=".VbbResultActivity"      android:screenOrientation="portrait" />
         <activity android:name=".PhotoGuideActivity"     android:screenOrientation="portrait" />
         <activity android:name=".DocumentsActivity"      android:screenOrientation="portrait" />
+        <activity android:name=".ArVerifyActivity"          android:screenOrientation="portrait" />
+        <activity android:name=".VerifyPanelActivity"      android:screenOrientation="portrait" />
+
+        <meta-data android:name="com.google.ar.core" android:value="optional" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

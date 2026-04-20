@@ -532,68 +532,6 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Panel Register card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardPanelRegister"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_marginBottom="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp"
-                app:cardMaxElevation="0dp"
-                app:cardBackgroundColor="@color/text_primary"
-                app:strokeWidth="0dp"
-                app:cardPreventCornerOverlap="false">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_myplaces"
-                        app:tint="@color/white" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="14dp"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Panel Register"
-                            android:textColor="@color/white"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="View all registered panels and history"
-                            android:textColor="#B3FFFFFF"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@android:drawable/arrow_down_float"
-                        android:rotation="-90"
-                        app:tint="@color/white" />
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- Saved Reports card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardReports"

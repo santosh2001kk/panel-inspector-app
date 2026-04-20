@@ -131,8 +131,9 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnQr"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="48dp"
+                android:layout_weight="1"
                 android:layout_marginEnd="6dp"
                 android:text="QR"
                 android:textAllCaps="false"
@@ -164,6 +165,7 @@
                 app:cornerRadius="14dp"
                 app:icon="@android:drawable/ic_menu_save" />
 
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShareResult"
                 android:layout_width="0dp"
@@ -177,16 +179,6 @@
                 app:cornerRadius="14dp"
                 app:icon="@android:drawable/ic_menu_share" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRegisterPanel"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="Reg Panel"
-                android:textAllCaps="false"
-                app:backgroundTint="#CC1565C0"
-                app:cornerRadius="14dp"
-                app:icon="@android:drawable/ic_menu_add" />
 
         </LinearLayout>
 
